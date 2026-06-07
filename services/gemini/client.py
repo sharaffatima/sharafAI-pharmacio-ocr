@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from services.gemini.prompts import DEFAULT_MODEL, DEFAULT_PROMPT
+from services.gemini.prompts import DEFAULT_MODEL, DEFAULT_PROMPT, get_product_aware_prompt
 from common.env import get_env_value
 from common.files import require_file
 from common.json_io import extract_json_object, write_json
@@ -23,13 +23,29 @@ def extract_pdf_to_json(
     *,
     output_path: str | os.PathLike[str] | None = None,
     model: str = DEFAULT_MODEL,
-    prompt: str = DEFAULT_PROMPT,
+    prompt: str | None = None,
+    target_items: list[dict[str, str]] | None = None,
 ) -> dict[str, Any]:
-    """Upload a PDF to Gemini and return structured JSON."""
+    """Upload a PDF to Gemini and return structured JSON.
+    
+    Args:
+        pdf_path: Path to the PDF file
+        output_path: Optional path to save the result JSON
+        model: Gemini model name (default: gemini-2.5-flash)
+        prompt: Custom extraction prompt (uses product-aware if target_items provided)
+        target_items: List of products to focus extraction on: [{"product_name": str, "strength": str|None}]
+    """
     from google import genai
     from google.genai import types
 
     pdf = require_file(pdf_path, label="PDF")
+    
+    # Use product-aware prompt if target_items provided and no custom prompt
+    if target_items and prompt is None:
+        prompt = get_product_aware_prompt(target_items)
+    
+    prompt = prompt or DEFAULT_PROMPT
+    
     client = genai.Client(api_key=_get_api_key())
     uploaded_file = client.files.upload(file=str(pdf))
     response = client.models.generate_content(

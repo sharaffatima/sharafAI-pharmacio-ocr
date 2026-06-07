@@ -29,6 +29,7 @@ def extract_pdf_to_json(
     engine: str,
     pdf_path: str,
     output_path: str | None = None,
+    target_items: list[dict[str, str]] | None = None,
     **kwargs: Any,
 ) -> dict[str, Any] | None:
     engine = normalize_engine_name(engine)
@@ -45,6 +46,8 @@ def extract_pdf_to_json(
         gemini_kwargs: dict[str, object] = {}
         if "model" in kwargs and kwargs["model"] is not None:
             gemini_kwargs["model"] = kwargs["model"]
+        if target_items:
+            gemini_kwargs["target_items"] = target_items
 
         return gemini_extract(pdf_path, output_path=output_path, **gemini_kwargs)
 
@@ -58,6 +61,8 @@ def extract_pdf_to_json(
         }
         if "model_name" in kwargs:
             hf_kwargs["model_name"] = kwargs["model_name"]
+        if target_items:
+            hf_kwargs["target_items"] = target_items
         
         return hf_extract(pdf_path, output_path=output_path, **hf_kwargs)
 
