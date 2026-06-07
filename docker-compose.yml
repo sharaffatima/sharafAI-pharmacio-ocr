@@ -10,6 +10,10 @@ services:
     environment:
       BACKEND_BASE_URL: http://backend:8000
       STORAGE_BACKEND: s3
+    volumes:
+      - ./services:/app/services
+      - ./API_Engine:/app/API_Engine
+      - ./common:/app/common
     networks:
       - pharmacio-net
 
