@@ -44,8 +44,13 @@ def get_product_aware_prompt(target_products: list[dict[str, str]] | None = None
         return DEFAULT_PROMPT
     
     def format_product(item):
-        name = item.get('product_name', '')
-        strength = item.get('strength', '')
+        # Handle both dict and Pydantic model objects
+        if isinstance(item, dict):
+            name = item.get('product_name', '')
+            strength = item.get('strength', '')
+        else:
+            name = getattr(item, 'product_name', '')
+            strength = getattr(item, 'strength', '')
         strength_str = f' ({strength})' if strength else ''
         return f'  - {name}{strength_str}'
     
