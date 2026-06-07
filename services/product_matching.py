@@ -165,8 +165,13 @@ def match_products(
     seen = set()
     
     for target in target_items:
-        target_name = target.get("product_name", "").strip()
-        target_strength = target.get("strength", "").strip()
+        # Handle both dict and Pydantic model objects
+        if isinstance(target, dict):
+            target_name = target.get("product_name", "").strip()
+            target_strength = target.get("strength", "").strip()
+        else:
+            target_name = getattr(target, "product_name", "").strip()
+            target_strength = getattr(target, "strength", "").strip()
         
         if not target_name:
             continue
