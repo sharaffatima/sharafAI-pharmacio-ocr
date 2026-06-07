@@ -43,8 +43,14 @@ def get_product_aware_prompt(target_products: list[dict[str, str]] | None = None
     if not target_products:
         return DEFAULT_PROMPT
     
+    def format_product(item):
+        name = item.get('product_name', '')
+        strength = item.get('strength', '')
+        strength_str = f' ({strength})' if strength else ''
+        return f'  - {name}{strength_str}'
+    
     product_list = "\n".join([
-        f"  - {item.get('product_name', '')} {f'({item.get(\"strength\", \"\")})' if item.get('strength') else ''}"
+        format_product(item)
         for item in target_products[:20]  # Limit to first 20 for token efficiency
     ])
     
