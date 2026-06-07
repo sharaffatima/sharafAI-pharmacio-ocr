@@ -35,8 +35,7 @@ def extract_pdf_to_json(
         prompt: Custom extraction prompt (uses product-aware if target_items provided)
         target_items: List of products to focus extraction on: [{"product_name": str, "strength": str|None}]
     """
-    from google import genai
-    from google.genai import types
+    import google.generativeai as genai
 
     pdf = require_file(pdf_path, label="PDF")
     
@@ -46,13 +45,16 @@ def extract_pdf_to_json(
     
     prompt = prompt or DEFAULT_PROMPT
     
-    client = genai.Client(api_key=_get_api_key())
-    uploaded_file = client.files.upload(file=str(pdf))
-    response = client.models.generate_content(
-        model=model,
-        contents=[uploaded_file, prompt],
-        config=types.GenerateContentConfig(response_mime_type="application/json"),
-    )
+    genai.configure(api_key=_get_api_key())
+    model_obj = genai.GenerativeModel(model)
+    
+    with open(pdf, "rb") as pdf_file:
+        response = model_obj.generate_content([
+            {"mime_type": "application/pdf", "data": pdf_file.read()},
+            prompt
+        ], stream=False)
+    
+    response.resolve()
 
     data = extract_json_object(response.text or "{}")
     if output_path:
